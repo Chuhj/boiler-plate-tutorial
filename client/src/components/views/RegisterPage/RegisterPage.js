@@ -30,7 +30,7 @@ function RegisterPage(props) {
   const handleFormSubmit = (e) => {
     e.preventDefault();
     if (password !== confirmPassword) {
-      return alert("password don't match");
+      return alert("Password don't match");
     }
     const data = { name, email, password };
 
