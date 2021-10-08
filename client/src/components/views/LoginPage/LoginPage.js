@@ -1,29 +1,34 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useDispatch } from 'react-redux';
 import { withRouter } from 'react-router-dom';
+import { Form, Input, Button, Checkbox } from 'antd';
+import { useForm, Controller } from 'react-hook-form';
 
 import { loginUser } from '../../../_actions/user_action';
 
 function LoginPage(props) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const defaultRemember = localStorage.getItem('remember');
+  const defaultEmail = localStorage.getItem('email');
 
   const dispatch = useDispatch();
+  const { handleSubmit, control } = useForm();
 
-  const handleChangeEmail = (e) => {
-    setEmail(e.target.value);
+  const handleRemember = (data) => {
+    if (data.remember) {
+      localStorage.setItem('remember', 'true');
+      localStorage.setItem('email', data.email);
+    } else {
+      localStorage.setItem('remember', 'false');
+      localStorage.removeItem('email');
+    }
   };
 
-  const handleChangePassword = (e) => {
-    setPassword(e.target.value);
-  };
-
-  const handleFormSubmit = (e) => {
-    e.preventDefault();
-
-    const data = { email, password };
+  const onSubmit = (data) => {
+    console.log(data);
+    localStorage.removeItem('remember');
     dispatch(loginUser(data)).then((response) => {
       if (response.payload.loginSuccess) {
+        handleRemember(data);
         props.history.push('/');
       } else {
         alert(response.payload.msg);
@@ -41,21 +46,46 @@ function LoginPage(props) {
         height: '100vh',
       }}
     >
-      <form
-        style={{ display: 'flex', flexDirection: 'column' }}
-        onSubmit={handleFormSubmit}
+      <Form
+        onFinish={handleSubmit(onSubmit)}
+        style={{ display: 'flex', flexDirection: 'column', width: '250px' }}
       >
-        <label>Email :</label>
-        <input type="text" value={email} onChange={handleChangeEmail} />
-        <label>Password :</label>
-        <input
-          type="password"
-          value={password}
-          onChange={handleChangePassword}
+        <label>Email</label>
+        <Controller
+          name="email"
+          control={control}
+          rules={{ required: true }}
+          defaultValue={defaultEmail}
+          render={({ field }) => (
+            <Input {...field} size="large" placeholder="Email" />
+          )}
         />
-        <br />
-        <button type="submit">Login</button>
-      </form>
+
+        <label>Password</label>
+        <Controller
+          name="password"
+          control={control}
+          rules={{ required: true }}
+          render={({ field }) => (
+            <Input.Password {...field} size="large" placeholder="Password" />
+          )}
+        />
+
+        <Controller
+          name="remember"
+          control={control}
+          defaultValue={defaultRemember}
+          render={({ field }) => (
+            <Checkbox onChange={field.onChange} checked={field.value}>
+              Remember me
+            </Checkbox>
+          )}
+        />
+
+        <a href="/register">Register</a>
+
+        <Button htmlType="submit">Login</Button>
+      </Form>
     </div>
   );
 }
