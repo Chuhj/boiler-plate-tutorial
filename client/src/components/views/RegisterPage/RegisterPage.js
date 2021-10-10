@@ -1,40 +1,26 @@
-import React, { useState } from 'react';
+import React, { useRef } from 'react';
 import { useDispatch } from 'react-redux';
-import { withRouter } from 'react-router-dom';
+import { withRouter, Link } from 'react-router-dom';
+import { Form, Input, Button } from 'antd';
+import { useForm, Controller } from 'react-hook-form';
 
 import { registerUser } from '../../../_actions/user_action';
 
 function RegisterPage(props) {
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmsetPassword] = useState('');
+  const {
+    watch,
+    handleSubmit,
+    control,
+    formState: { errors },
+  } = useForm({ mode: 'onChange' });
 
   const dispatch = useDispatch();
 
-  const handleChangeEmail = (e) => {
-    setEmail(e.target.value);
-  };
+  const password = useRef();
+  password.current = watch('password');
 
-  const handleChangeName = (e) => {
-    setName(e.target.value);
-  };
-
-  const handleChangePassword = (e) => {
-    setPassword(e.target.value);
-  };
-
-  const handleChangeConfirmPassword = (e) => {
-    setConfirmsetPassword(e.target.value);
-  };
-
-  const handleFormSubmit = (e) => {
-    e.preventDefault();
-    if (password !== confirmPassword) {
-      return alert("Password don't match");
-    }
-    const data = { name, email, password };
-
+  const onSubmit = (data) => {
+    console.log(data);
     dispatch(registerUser(data)).then((response) => {
       if (response.payload.success) {
         props.history.push('/login');
@@ -53,30 +39,57 @@ function RegisterPage(props) {
         alignItems: 'center',
       }}
     >
-      <form
-        onSubmit={handleFormSubmit}
-        style={{ display: 'flex', flexDirection: 'column' }}
+      <Form
+        onFinish={handleSubmit(onSubmit)}
+        style={{ display: 'flex', flexDirection: 'column', width: '250px' }}
       >
         <label>Email</label>
-        <input type="text" onChange={handleChangeEmail} required />
+        <Controller
+          name="email"
+          control={control}
+          rules={{ required: true, pattern: /^\S+@\S+$/i }}
+          render={({ field }) => <Input {...field} />}
+        />
+        {errors.email?.type === 'required' && 'Email is required!'}
+        {errors.email?.type === 'pattern' && 'Please write email address!'}
+
         <label>Name</label>
-        <input type="text" onChange={handleChangeName} required />
+        <Controller
+          name="name"
+          control={control}
+          rules={{ required: true }}
+          render={({ field }) => <Input {...field} />}
+        />
+        {errors.name?.type === 'required' && 'Name is required!'}
+
         <label>Password</label>
-        <input
-          type="password"
-          onChange={handleChangePassword}
-          minLength="5"
-          required
+        <Controller
+          name="password"
+          control={control}
+          rules={{ required: true, minLength: 5 }}
+          render={({ field }) => <Input.Password {...field} />}
         />
+        {errors.password?.type === 'required' && 'Password is required!'}
+        {errors.password?.type === 'minLength' &&
+          'Password must have at least 5 characters'}
+
         <label>Confirm Password</label>
-        <input
-          type="password"
-          onChange={handleChangeConfirmPassword}
-          minLength="5"
-          required
+        <Controller
+          name="confirm_password"
+          control={control}
+          rules={{
+            required: true,
+            minLength: 5,
+            validate: (value) => value === password.current,
+          }}
+          render={({ field }) => <Input.Password {...field} />}
         />
-        <button type="submit">Register</button>
-      </form>
+        {errors.confirm_password?.type === 'validate' &&
+          'The passwords do not match!'}
+        <Link to="/login">Login</Link>
+
+        <Button htmlType="submit">Register</Button>
+      </Form>
     </div>
   );
 }

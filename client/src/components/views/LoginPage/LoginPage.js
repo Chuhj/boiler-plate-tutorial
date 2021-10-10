@@ -1,6 +1,6 @@
 import React from 'react';
 import { useDispatch } from 'react-redux';
-import { withRouter } from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
 import { Form, Input, Button, Checkbox } from 'antd';
 import { useForm, Controller } from 'react-hook-form';
 
@@ -11,7 +11,7 @@ function LoginPage(props) {
   const defaultEmail = localStorage.getItem('email');
 
   const dispatch = useDispatch();
-  const { handleSubmit, control } = useForm();
+  const { handleSubmit, control } = useForm({ mode: 'onChange' });
 
   const handleRemember = (data) => {
     if (data.remember) {
@@ -54,7 +54,7 @@ function LoginPage(props) {
         <Controller
           name="email"
           control={control}
-          rules={{ required: true }}
+          rules={{ required: true, pattern: /^\S+@\S+$/i }}
           defaultValue={defaultEmail}
           render={({ field }) => (
             <Input {...field} size="large" placeholder="Email" />
@@ -82,7 +82,7 @@ function LoginPage(props) {
           )}
         />
 
-        <a href="/register">Register</a>
+        <Link to="/register">Register</Link>
 
         <Button htmlType="submit">Login</Button>
       </Form>
